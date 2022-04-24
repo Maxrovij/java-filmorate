@@ -1,15 +1,10 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import lombok.Builder;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerTest {
     private FilmController filmController = new FilmController();
@@ -39,10 +34,10 @@ class FilmControllerTest {
         Film filmBefore = filmController.getAllFilms().get(0);
         Assertions.assertTrue(
                 filmBefore.getDescription().equals("Film Die Hard") &&
-                        filmBefore.getId() == 2);
+                        filmBefore.getId() == 1);
 
         FilmDto filmEdited = new FilmDto(
-                2,
+                1,
                 "Die Hard",
                 "Yippee Ki Yay, motherfucker",
                 90000L,
@@ -52,7 +47,7 @@ class FilmControllerTest {
         Film filmAfter = filmController.getAllFilms().get(0);
         Assertions.assertTrue(
                 filmAfter.getDescription().equals("Yippee Ki Yay, motherfucker") &&
-                        filmAfter.getId() == 2);
+                        filmAfter.getId() == 1);
     }
 
     @Test
@@ -67,7 +62,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void shouldThrowExceptionIfThisFilmIsAlreadyExists() throws ValidationException {
+    void shouldThrowExceptionIfThisFilmAlreadyExists() throws ValidationException {
         FilmDto matrix = new FilmDto(
                 null,
                 "The Matrix",

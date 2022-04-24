@@ -30,33 +30,24 @@ public class FilmController {
 
     // обработка POST запроса для добавления фильма
     @PostMapping
-    public void addFilm(@RequestBody FilmDto filmDto) throws ValidationException {
-        LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
-
-        if(validateFilm(filmDtoReleaseDay, filmDto)) {
-            Integer mayBeId = FilmIDStorage.getFilmIdByName(filmDto.getName());
-            if (films.containsKey(mayBeId)
-                    && films.get(mayBeId).getReleaseDate().getYear() == filmDtoReleaseDay.getYear()) {
-                log.debug("Валидация не пройдена. Фильм уже есть в базе.");
-                throw new ValidationException("Такой фильм уже присутствует в базе.");
+    public void addFilm(@RequestBody FilmDto filmDto) {
+        if(validateFilm(filmDto)) {
+            LocalDate filmDtoReleaseDate = LocalDate.parse(filmDto.getReleaseDate());
+            String name = filmDto.getName();
+            for (Film film : films.values()) {
+                if (film.getName().equals(filmDto.getName()) && film.getReleaseDate().equals(filmDtoReleaseDate)) {
+                    log.debug("Такой фильм уже есть в базе.");
+                    throw new ValidationException("Такой фильм уже есть в базе.");
+                } else {
+                    name = filmDto.getName() + " (" + filmDtoReleaseDate.getYear() + ")";
+                }
             }
-
-            // иногда названия фильмов повторяются(например если фильм пересняли), но даты выпуска разные
-            // тогда к названию фильма прибавляю год выпуска
-            String name;
-            if (films.containsKey(mayBeId)) {
-                name = filmDto.getName() + " (" + filmDtoReleaseDay.getYear() + ")";
-            }else {
-                name = filmDto.getName();
-            }
-
-            int id = FilmIDStorage.generateID(name);
 
             Film film = Film.builder()
-                    .id(id)
+                    .id(generateID())
                     .name(name)
                     .description(filmDto.getDescription())
-                    .releaseDate(filmDtoReleaseDay)
+                    .releaseDate(filmDtoReleaseDate)
                     .duration(Duration.ofMillis(filmDto.getDuration()))
                     .build();
 
@@ -65,15 +56,14 @@ public class FilmController {
         } else {
             throw new ValidationException("Введенная информация о фильме не соответствует требованиям валидации.");
         }
-
     }
 
     // обработка PUT запроса для редактирования фильма
     @PutMapping
-    public void editFilm(@RequestBody FilmDto filmDto) throws ValidationException {
-        LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
-        if (validateFilm(filmDtoReleaseDay, filmDto) && filmDto.getId() != null) {
+    public void editFilm(@RequestBody FilmDto filmDto) {
+        if (filmDto.getId() != null && validateFilm(filmDto)) {
             if (films.containsKey(filmDto.getId())) {
+                LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
                 Film film = Film.builder()
                         .id(filmDto.getId())
                         .name(filmDto.getName())
@@ -93,7 +83,8 @@ public class FilmController {
     }
 
     // метод валидации фильма по полям
-    private boolean validateFilm(LocalDate release, FilmDto filmDto) {
+    private boolean validateFilm(FilmDto filmDto) {
+        LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
         if (filmDto.getName().isBlank()) {
             log.debug("Валидация не пройдена. Не указано название фильма.");
             return false;
@@ -103,14 +94,23 @@ public class FilmController {
             return false;
         }
         if (filmDto.getDuration() <= 0) {
-            log.debug("Валидация не пройдена. Продолжительность фильма равно 0 или имеет отрицательное значение.");
+            log.debug("Валидация не пройдена. Продолжительность фильма равна 0 или имеет отрицательное значение.");
             return false;
         }
-        if (release.isBefore(cinemaBirthDay)) {
+        if (filmDtoReleaseDay.isBefore(cinemaBirthDay)) {
             log.debug("Валидация не пройдена. Дата выпуска фильма раньше, чем придумали кино.");
             return false;
         }
         return true;
+    }
+
+    // генератор Айди
+    private int generateID() {
+        int id = 1;
+        while (films.containsKey(id)){
+            id++;
+        }
+        return id;
     }
 }
 

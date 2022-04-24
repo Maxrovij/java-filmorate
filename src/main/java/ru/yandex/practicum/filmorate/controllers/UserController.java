@@ -26,72 +26,90 @@ public class UserController {
 
     // метод обработки POST запросов для добавления нового пользователя
     @PostMapping
-    public void addUser(@Valid @RequestBody UserDto userDto) throws ValidationException {
-        LocalDate userBirthDay = LocalDate.parse(userDto.getBirthday());
-        if (users.containsKey(UserIDStorage.getUserIDByEmail(userDto.getEmail()))) {
-            log.debug("Валидация не пройдена. Имейл занят.");
-            throw new ValidationException("Этот адрес электронной почты уже используется.");
-        }
-        if (userBirthDay.isAfter(LocalDate.now())) {
-            log.debug("Валидация не пройдена. Дата рождения в будущем.");
-            throw new ValidationException("Дата рождения не может быть в будущем.");
-        }
-        if (userDto.getLogin().contains(" ")) {
-            log.debug("Валидация не пройдена. Логин содержит пробелы.");
-            throw new ValidationException("Логин не может содержать пробелы.");
-        }
-
-        // если имя не указано, то используем логин
-        String name;
-        if(userDto.getName() == null || userDto.getName().isBlank()) {
-            name = userDto.getLogin();
-        } else {
-            name = userDto.getName();
-        }
-
-        User user = User.builder()
-                .id(UserIDStorage.generateID(userDto.getEmail()))
-                .email(userDto.getEmail())
-                .login(userDto.getLogin())
-                .name(name)
-                .birthday(userBirthDay)
-                .build();
-
-        users.put(user.getId(), user);
-        log.trace("Обработант POST запрос на /users");
-    }
-
-    // метод обработки PUT запросов для редактирования пользователя
-    @PutMapping
-    public void editUser(@Valid @RequestBody UserDto userDto) throws ValidationException {
-        if (userDto.getId() != null && users.containsKey(userDto.getId())) {
-            LocalDate userBirthDay = LocalDate.parse(userDto.getBirthday());
-            if (userBirthDay.isAfter(LocalDate.now())) {
-                log.debug("Валидация не пройдена. Дата рождения в будущем.");
-                throw new ValidationException("Дата рождения не может быть в будущем.");
+    public void addUser(@Valid @RequestBody UserDto userDto) {
+        if (validateUser(userDto)) {
+            for (User user : users.values()) {
+                if (user.getEmail().equals(userDto.getEmail()) || user.getLogin().equals(userDto.getLogin())) {
+                    log.debug("Имейл или логин уже уже используются.");
+                    throw new ValidationException("Имейл или логин уже уже используются.");
+                }
             }
-            if (userDto.getLogin().contains(" ")) {
-                log.debug("Валидация не пройдена. Логин содержит пробелы.");
-                throw new ValidationException("Логин не может содержать пробелы.");
-            }
+            // если имя не указано, то используем логин
             String name;
-            if(userDto.getName().isBlank() || userDto.getName() == null) {
+            if(userDto.getName() == null || userDto.getName().isBlank()) {
                 name = userDto.getLogin();
             } else {
                 name = userDto.getName();
             }
+
+            LocalDate userBirthDay = LocalDate.parse(userDto.getBirthday());
             User user = User.builder()
-                    .id(userDto.getId())
+                    .id(generateID())
                     .email(userDto.getEmail())
                     .login(userDto.getLogin())
                     .name(name)
                     .birthday(userBirthDay)
                     .build();
+
             users.put(user.getId(), user);
-            log.trace("Обработант PUT запрос на /users");
+            log.trace("Обработант POST запрос на /users");
         } else {
-            log.debug("Валидация не пройдена. Неверный ID");
+            throw new ValidationException("Введенные данные не соответствуют требованиям валидации.");
+        }
+    }
+
+    // метод обработки PUT запросов для редактирования пользователя
+    @PutMapping
+    public void editUser(@Valid @RequestBody UserDto userDto) {
+        if (userDto.getId() != null && users.containsKey(userDto.getId())) {
+            if (validateUser(userDto)) {
+                String name;
+                if(userDto.getName().isBlank() || userDto.getName() == null) {
+                    name = userDto.getLogin();
+                } else {
+                    name = userDto.getName();
+                }
+                LocalDate userBirthDay = LocalDate.parse(userDto.getBirthday());
+                User user = User.builder()
+                        .id(userDto.getId())
+                        .email(userDto.getEmail())
+                        .login(userDto.getLogin())
+                        .name(name)
+                        .birthday(userBirthDay)
+                        .build();
+                users.put(user.getId(), user);
+                log.trace("Обработант PUT запрос на /users");
+            } else {
+                throw new ValidationException("Введенные данные не соответствуют требованиям валидации.");
+            }
+        } else {
+            log.debug("Неверный ID");
             throw new ValidationException("Неверный ID");
         }
+    }
+
+    private boolean validateUser(UserDto userDto) {
+        LocalDate userBirthDay = LocalDate.parse(userDto.getBirthday());
+        if (userBirthDay.isAfter(LocalDate.now())) {
+            log.debug("Валидация не пройдена. Дата рождения в будущем.");
+            return false;
+        }
+        if (userDto.getLogin().isBlank() || userDto.getLogin().isEmpty()) {
+            log.debug("Валидация не пройдена. Логин пустой.");
+            return false;
+        }
+        if (userDto.getLogin().contains(" ")) {
+            log.debug("Валидация не пройдена. Логин содержит пробелы.");
+            return false;
+        }
+        return true;
+    }
+
+    private int generateID() {
+        int id = 1;
+        while (users.containsKey(id)){
+            id++;
+        }
+        return id;
     }
 }
