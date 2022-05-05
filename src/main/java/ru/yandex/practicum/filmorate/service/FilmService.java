@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.comparator.Comparators;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
@@ -20,6 +20,7 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
 
+    @Autowired
     public FilmService(FilmStorage filmStorage) {
         this.filmStorage = filmStorage;
     }
@@ -28,7 +29,7 @@ public class FilmService {
         return filmStorage.getAllFilms();
     }
 
-    public void addFilm(FilmDto filmDto) {
+    public Film addFilm(FilmDto filmDto) {
         if(validateFilm(filmDto)) {
             LocalDate filmDtoReleaseDate = LocalDate.parse(filmDto.getReleaseDate());
             String name = filmDto.getName();
@@ -46,16 +47,15 @@ public class FilmService {
                     .name(name)
                     .description(filmDto.getDescription())
                     .releaseDate(filmDtoReleaseDate)
-                    .duration(Duration.ofMillis(filmDto.getDuration()))
+                    .duration(filmDto.getDuration())
                     .likes(new HashSet<>())
                     .build();
             filmStorage.addFilm(film);
-        } else {
-            throw new ValidationException("Введенная информация о фильме не соответствует требованиям валидации.");
-        }
+            return film;
+        } else return null;
     }
 
-    public void editFilm(FilmDto filmDto) {
+    public Film editFilm(FilmDto filmDto) {
         if (filmDto.getId() != null && validateFilm(filmDto)) {
             LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
             Film film = Film.builder()
@@ -63,25 +63,38 @@ public class FilmService {
                     .name(filmDto.getName())
                     .description(filmDto.getDescription())
                     .releaseDate(filmDtoReleaseDay)
-                    .duration(Duration.ofMillis(filmDto.getDuration()))
+                    .duration(filmDto.getDuration())
                     .likes(filmStorage.findFilmById(filmDto.getId()).getLikes())
                     .build();
             filmStorage.editFilm(film);
+            return film;
         } else {
             throw new ValidationException("Введенная информация не соответствует требованиям валидации.");
         }
     }
 
+    public Film getFilmById(Integer id) {
+        return filmStorage.findFilmById(id);
+    }
+
     public void likeFilm(Integer filmId, Integer userId) {
-        Film film = filmStorage.findFilmById(filmId);
-        film.like(userId);
-        filmStorage.editFilm(film);
+        if (filmId <= 0 || userId <= 0) {
+            throw new IllegalArgumentException("Неверный ID");
+        } else {
+            Film film = filmStorage.findFilmById(filmId);
+            film.like(userId);
+            filmStorage.editFilm(film);
+        }
     }
 
     public void unlikeFilm(Integer filmId, Integer userId) {
-        Film film = filmStorage.findFilmById(filmId);
-        film.unlike(userId);
-        filmStorage.editFilm(film);
+        if (filmId <= 0 || userId <= 0) {
+            throw new ValidationException("Неверный ID");
+        } else {
+            Film film = filmStorage.findFilmById(filmId);
+            film.unlike(userId);
+            filmStorage.editFilm(film);
+        }
     }
 
     public List<Film> getPopular(Integer count) {
@@ -93,16 +106,16 @@ public class FilmService {
 
     private boolean validateFilm(FilmDto filmDto) {
         LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
-        if (filmDto.getName().isBlank()) {
-            return false;
-        }
-        if (filmDto.getDescription().length() > 200 || filmDto.getDescription().length() == 0) {
-            return false;
-        }
-        if (filmDto.getDuration() <= 0) {
-            return false;
-        }
-        return !filmDtoReleaseDay.isBefore(cinemaBirthDay);
+        if (filmDto.getName().isBlank())
+            throw new IllegalArgumentException("Название не может быть пустым.");
+        if (filmDto.getDescription().length() > 200 || filmDto.getDescription().length() == 0)
+            throw new IllegalArgumentException("Описание фильма слишком длинное или его вовсе нет.");
+        if (filmDto.getDuration() <= 0)
+            throw new IllegalArgumentException("Продолжительность фильма маловата.");
+        if (filmDtoReleaseDay.isBefore(cinemaBirthDay))
+            throw new IllegalArgumentException("Дата выхода фильма раньше даты изобретения кино");
+
+        return true;
     }
 
     private Integer getNewId() {

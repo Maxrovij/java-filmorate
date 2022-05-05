@@ -5,11 +5,12 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.UserDto;
-
-import static org.junit.jupiter.api.Assertions.*;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 class UserControllerTest {
-    UserController userController = new UserController();
+    UserService userService = new UserService(new InMemoryUserStorage());
+    UserController userController = new UserController(userService);
 
     @Test
     void shouldAddNewUser() throws ValidationException {

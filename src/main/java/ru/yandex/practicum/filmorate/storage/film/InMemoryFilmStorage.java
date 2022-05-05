@@ -3,10 +3,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmDto;
 
-import java.time.Duration;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +11,7 @@ import java.util.List;
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
 
-    private HashMap<Integer, Film> films = new HashMap<>();
+    private final HashMap<Integer, Film> films = new HashMap<>();
 
     public List<Film> getAllFilms() {
         return new ArrayList<>(films.values());
@@ -33,7 +30,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     public Film findFilmById(Integer id) {
-        return films.get(id);
+        if (films.containsKey(id)) return films.get(id);
+        else throw new ValidationException("фильм с ID " + id + "отсутствует в базе.");
     }
 
 }

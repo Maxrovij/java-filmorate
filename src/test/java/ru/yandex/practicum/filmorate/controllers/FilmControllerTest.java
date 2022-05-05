@@ -5,9 +5,12 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 class FilmControllerTest {
-    private FilmController filmController = new FilmController();
+    FilmService filmService = new FilmService(new InMemoryFilmStorage());
+    private FilmController filmController = new FilmController(filmService);
 
     @Test
     void shouldAddFilm() throws ValidationException {
