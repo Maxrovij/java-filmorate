@@ -9,7 +9,9 @@ public interface FilmStorage {
 
     List<Film> getAllFilms();
 
-    void addFilm(FilmDto filmDto);
+    void addFilm(Film film);
 
-    void editFilm(FilmDto filmDto);
+    void editFilm(Film film);
+
+    Film findFilmById(Integer id);
 }

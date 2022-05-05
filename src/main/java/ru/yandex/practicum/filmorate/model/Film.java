@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Set;
 
 // класс представляющий объект фильма
 @Data
@@ -14,4 +15,12 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private Duration duration;
+    private final Set<Integer> likes;
+
+    public void like(Integer id) {
+        likes.add(id);
+    }
+    public void unlike(Integer id) {
+        likes.remove(id);
+    }
 }
