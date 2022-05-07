@@ -2,27 +2,30 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
-    private final LocalDate cinemaBirthDay = LocalDate.of(1895, 12, 28);
-    private Integer latestId = 0;
+    private final LocalDate CINEMA_BIRTH_DAY = LocalDate.of(1895, 12, 28);
+    private Long latestId = 0L;
 
     private final FilmStorage filmStorage;
+    private final UserService userService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
+        this.userService = userService;
     }
 
     public List<Film> getAllFilms() {
@@ -48,7 +51,6 @@ public class FilmService {
                     .description(filmDto.getDescription())
                     .releaseDate(filmDtoReleaseDate)
                     .duration(filmDto.getDuration())
-                    .likes(new HashSet<>())
                     .build();
             filmStorage.addFilm(film);
             return film;
@@ -57,44 +59,58 @@ public class FilmService {
 
     public Film editFilm(FilmDto filmDto) {
         if (filmDto.getId() != null && validateFilm(filmDto)) {
-            LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
-            Film film = Film.builder()
-                    .id(filmDto.getId())
-                    .name(filmDto.getName())
-                    .description(filmDto.getDescription())
-                    .releaseDate(filmDtoReleaseDay)
-                    .duration(filmDto.getDuration())
-                    .likes(filmStorage.findFilmById(filmDto.getId()).getLikes())
-                    .build();
-            filmStorage.editFilm(film);
-            return film;
+            Optional<Film> maybeFilm = filmStorage.findFilmById(filmDto.getId());
+            if (maybeFilm.isPresent()) {
+                LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
+                Film film = Film.builder()
+                        .id(filmDto.getId())
+                        .name(filmDto.getName())
+                        .description(filmDto.getDescription())
+                        .releaseDate(filmDtoReleaseDay)
+                        .duration(filmDto.getDuration())
+                        .build();
+                film.setLikes(maybeFilm.get().getLikes());
+                filmStorage.addFilm(film);
+                return film;
+            } else
+                throw new DataNotFoundException("Фильм не найден.");
         } else {
             throw new ValidationException("Введенная информация не соответствует требованиям валидации.");
         }
     }
 
-    public Film getFilmById(Integer id) {
-        return filmStorage.findFilmById(id);
+    public Film getFilmById(Long id) {
+        Optional<Film> maybeFilm = filmStorage.findFilmById(id);
+        if (maybeFilm.isPresent()) return maybeFilm.get();
+        throw new ValidationException("Фильм не найден.");
     }
 
-    public void likeFilm(Integer filmId, Integer userId) {
+    public void likeFilm(Long filmId, Long userId) {
         if (filmId <= 0 || userId <= 0) {
-            throw new IllegalArgumentException("Неверный ID");
-        } else {
-            Film film = filmStorage.findFilmById(filmId);
-            film.like(userId);
-            filmStorage.editFilm(film);
+            throw new IllegalArgumentException("Невалидный ID");
         }
+        Optional<Film> maybeFilm = filmStorage.findFilmById(filmId);
+        User user = userService.getUserById(userId);
+        if (maybeFilm.isPresent()) {
+            Film film = maybeFilm.get();
+            film.like(user.getId());
+            filmStorage.addFilm(film);
+        } else
+            throw new DataNotFoundException("Фильм не найден.");
     }
 
-    public void unlikeFilm(Integer filmId, Integer userId) {
+    public void unlikeFilm(Long filmId, Long userId) {
         if (filmId <= 0 || userId <= 0) {
-            throw new ValidationException("Неверный ID");
-        } else {
-            Film film = filmStorage.findFilmById(filmId);
-            film.unlike(userId);
-            filmStorage.editFilm(film);
+            throw new ValidationException("Невалидный ID");
         }
+        Optional<Film> maybeFilm = filmStorage.findFilmById(filmId);
+        User user = userService.getUserById(userId);
+        if (maybeFilm.isPresent()) {
+            Film film = maybeFilm.get();
+            film.unlike(user.getId());
+            filmStorage.addFilm(film);
+        } else
+            throw new DataNotFoundException("Фильм не найден.");
     }
 
     public List<Film> getPopular(Integer count) {
@@ -112,13 +128,13 @@ public class FilmService {
             throw new IllegalArgumentException("Описание фильма слишком длинное или его вовсе нет.");
         if (filmDto.getDuration() <= 0)
             throw new IllegalArgumentException("Продолжительность фильма маловата.");
-        if (filmDtoReleaseDay.isBefore(cinemaBirthDay))
+        if (filmDtoReleaseDay.isBefore(CINEMA_BIRTH_DAY))
             throw new IllegalArgumentException("Дата выхода фильма раньше даты изобретения кино");
 
         return true;
     }
 
-    private Integer getNewId() {
+    private Long getNewId() {
         latestId++;
         return latestId;
     }

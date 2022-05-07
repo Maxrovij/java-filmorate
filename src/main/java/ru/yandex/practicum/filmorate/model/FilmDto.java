@@ -5,7 +5,7 @@ import lombok.Data;
 // DTO для передачи информации о фильме
 @Data
 public class FilmDto {
-    private final Integer id;
+    private final Long id;
     private final String name;
     private final String description;
     private final Long duration;

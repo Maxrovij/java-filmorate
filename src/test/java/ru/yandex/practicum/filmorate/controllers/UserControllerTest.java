@@ -15,7 +15,7 @@ class UserControllerTest {
     @Test
     void shouldAddNewUser() throws ValidationException {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "Maxim",
@@ -29,7 +29,7 @@ class UserControllerTest {
     @Test
     void shouldThrowExceptionIfEmailIsBusy() throws ValidationException {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "Maxim",
@@ -42,7 +42,7 @@ class UserControllerTest {
     @Test
     void shouldThrowExceptionIfBirthdayIsInFuture() {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "Maxim",
@@ -54,7 +54,7 @@ class UserControllerTest {
     @Test
     void shouldThrowExceptionIfLoginContainSpaces() {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Max rovij",
                 "Maxim",
@@ -66,7 +66,7 @@ class UserControllerTest {
     @Test
     void shouldUseLoginIfNameIsEmpty() throws ValidationException {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "",
@@ -80,7 +80,7 @@ class UserControllerTest {
     @Test
     void shouldEditUser() throws ValidationException {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "Maxim",
@@ -94,7 +94,7 @@ class UserControllerTest {
                 notEditedUser.getName().equals("Maxim"));
 
         UserDto userDto1 = new UserDto(
-                1,
+                1L,
                 "karmaig87@gmail.com",
                 "M@xrovij",
                 "Maxim Kartsev",

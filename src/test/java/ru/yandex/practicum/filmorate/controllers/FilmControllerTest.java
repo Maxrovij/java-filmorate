@@ -6,10 +6,12 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 class FilmControllerTest {
-    FilmService filmService = new FilmService(new InMemoryFilmStorage());
+    FilmService filmService = new FilmService(new InMemoryFilmStorage(), new UserService(new InMemoryUserStorage()));
     private FilmController filmController = new FilmController(filmService);
 
     @Test
@@ -40,7 +42,7 @@ class FilmControllerTest {
                         filmBefore.getId() == 1);
 
         FilmDto filmEdited = new FilmDto(
-                1,
+                1L,
                 "Die Hard",
                 "Yippee Ki Yay, motherfucker",
                 90000L,

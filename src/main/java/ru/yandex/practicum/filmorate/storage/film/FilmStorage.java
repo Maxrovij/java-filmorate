@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FilmStorage {
 
@@ -11,7 +12,5 @@ public interface FilmStorage {
 
     void addFilm(Film film);
 
-    void editFilm(Film film);
-
-    Film findFilmById(Integer id);
+    Optional<Film> findFilmById(Long id);
 }
