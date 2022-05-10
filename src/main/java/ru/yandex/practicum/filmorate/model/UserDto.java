@@ -7,7 +7,7 @@ import javax.validation.constraints.*;
 // DTO для передаячи информации о пользователе
 @Data
 public class UserDto {
-    private final Integer id;
+    private final Long id;
 
     @Email
     private final String email;

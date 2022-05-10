@@ -1,116 +1,62 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 // класс обработки запросов к фильмам
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private final static Logger log = LoggerFactory.getLogger(FilmController.class);
-    private final LocalDate cinemaBirthDay = LocalDate.of(1895, 12, 28);
-    private HashMap<Integer, Film> films = new HashMap<>();
+
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     // обработка GET запроса для получения списка добавленных фильмов
     @GetMapping
     public List<Film> getAllFilms() {
-        return new ArrayList<>(films.values());
+        return filmService.getAllFilms();
     }
 
     // обработка POST запроса для добавления фильма
     @PostMapping
-    public void addFilm(@RequestBody FilmDto filmDto) {
-        if(validateFilm(filmDto)) {
-            LocalDate filmDtoReleaseDate = LocalDate.parse(filmDto.getReleaseDate());
-            String name = filmDto.getName();
-            for (Film film : films.values()) {
-                if (film.getName().equals(filmDto.getName()) && film.getReleaseDate().equals(filmDtoReleaseDate)) {
-                    log.debug("Такой фильм уже есть в базе.");
-                    throw new ValidationException("Такой фильм уже есть в базе.");
-                } else {
-                    name = filmDto.getName() + " (" + filmDtoReleaseDate.getYear() + ")";
-                }
-            }
-
-            Film film = Film.builder()
-                    .id(generateID())
-                    .name(name)
-                    .description(filmDto.getDescription())
-                    .releaseDate(filmDtoReleaseDate)
-                    .duration(Duration.ofMillis(filmDto.getDuration()))
-                    .build();
-
-            films.put(film.getId(), film);
-            log.trace("Обработант POST запрос на /films");
-        } else {
-            throw new ValidationException("Введенная информация о фильме не соответствует требованиям валидации.");
-        }
+    public Film addFilm(@RequestBody FilmDto filmDto) {
+        return filmService.addFilm(filmDto);
     }
 
     // обработка PUT запроса для редактирования фильма
     @PutMapping
-    public void editFilm(@RequestBody FilmDto filmDto) {
-        if (filmDto.getId() != null && validateFilm(filmDto)) {
-            if (films.containsKey(filmDto.getId())) {
-                LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
-                Film film = Film.builder()
-                        .id(filmDto.getId())
-                        .name(filmDto.getName())
-                        .description(filmDto.getDescription())
-                        .releaseDate(filmDtoReleaseDay)
-                        .duration(Duration.ofMillis(filmDto.getDuration()))
-                        .build();
-                films.put(film.getId(), film);
-                log.trace("Обработант PUT запрос на /films");
-            } else {
-                log.debug("Валидация не пройдена. Неверный ID.");
-                throw new ValidationException("фильм с ID " + filmDto.getId() + "отсутствует в базе.");
-            }
-        } else {
-            throw new ValidationException("Введенная информация не соответствует требованиям валидации.");
-        }
+    public Film editFilm(@RequestBody FilmDto filmDto) {
+        return filmService.editFilm(filmDto);
     }
 
-    // метод валидации фильма по полям
-    private boolean validateFilm(FilmDto filmDto) {
-        LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
-        if (filmDto.getName().isBlank()) {
-            log.debug("Валидация не пройдена. Не указано название фильма.");
-            return false;
-        }
-        if (filmDto.getDescription().length() > 200 || filmDto.getDescription().length() == 0) {
-            log.debug("Валидация не пройдена. Описание больше 200 символов.");
-            return false;
-        }
-        if (filmDto.getDuration() <= 0) {
-            log.debug("Валидация не пройдена. Продолжительность фильма равна 0 или имеет отрицательное значение.");
-            return false;
-        }
-        if (filmDtoReleaseDay.isBefore(cinemaBirthDay)) {
-            log.debug("Валидация не пройдена. Дата выпуска фильма раньше, чем придумали кино.");
-            return false;
-        }
-        return true;
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable Long id) {
+        return filmService.getFilmById(id);
     }
 
-    // генератор Айди
-    private int generateID() {
-        int id = 1;
-        while (films.containsKey(id)){
-            id++;
-        }
-        return id;
+    @PutMapping("/{filmId}/like/{userId}")
+    public void like(@PathVariable Long filmId, @PathVariable Long userId) {
+        filmService.likeFilm(filmId, userId);
+    }
+
+    @DeleteMapping("/{filmId}/like/{userId}")
+    public void unlike(@PathVariable Long filmId, @PathVariable Long userId) {
+        filmService.unlikeFilm(filmId, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getFilmsSortedByLikes(
+            @RequestParam(name = "count", defaultValue = "10", required = false) Integer count) {
+        return filmService.getPopular(count);
     }
 }
 

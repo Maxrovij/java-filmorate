@@ -5,16 +5,17 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.UserDto;
-
-import static org.junit.jupiter.api.Assertions.*;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 class UserControllerTest {
-    UserController userController = new UserController();
+    UserService userService = new UserService(new InMemoryUserStorage());
+    UserController userController = new UserController(userService);
 
     @Test
     void shouldAddNewUser() throws ValidationException {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "Maxim",
@@ -28,7 +29,7 @@ class UserControllerTest {
     @Test
     void shouldThrowExceptionIfEmailIsBusy() throws ValidationException {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "Maxim",
@@ -41,7 +42,7 @@ class UserControllerTest {
     @Test
     void shouldThrowExceptionIfBirthdayIsInFuture() {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "Maxim",
@@ -53,7 +54,7 @@ class UserControllerTest {
     @Test
     void shouldThrowExceptionIfLoginContainSpaces() {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Max rovij",
                 "Maxim",
@@ -65,7 +66,7 @@ class UserControllerTest {
     @Test
     void shouldUseLoginIfNameIsEmpty() throws ValidationException {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "",
@@ -79,7 +80,7 @@ class UserControllerTest {
     @Test
     void shouldEditUser() throws ValidationException {
         UserDto userDto = new UserDto(
-                1,
+                1L,
                 "karmaig87@yandex.ru",
                 "Maxrovij",
                 "Maxim",
@@ -93,7 +94,7 @@ class UserControllerTest {
                 notEditedUser.getName().equals("Maxim"));
 
         UserDto userDto1 = new UserDto(
-                1,
+                1L,
                 "karmaig87@gmail.com",
                 "M@xrovij",
                 "Maxim Kartsev",
