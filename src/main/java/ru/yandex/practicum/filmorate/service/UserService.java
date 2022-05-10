@@ -55,6 +55,15 @@ public class UserService {
             Optional<User> maybeUser = userStorage.findUserById(userDto.getId());
             if (maybeUser.isPresent()) {
                 String name = validateUser(userDto);
+                if (!maybeUser.get().getEmail().equals(userDto.getEmail()) ||
+                        !maybeUser.get().getLogin().equals(userDto.getLogin())) {
+                    for (User user : userStorage.getAllUsers()) {
+                        if (user.getEmail().equals(userDto.getEmail()) || user.getLogin().equals(userDto.getLogin())) {
+                            if (!user.getId().equals(maybeUser.get().getId()))
+                                throw new ValidationException("Имейл или логин уже используется.");
+                        }
+                    }
+                }
                 LocalDate userBirthDay = LocalDate.parse(userDto.getBirthday());
                 User user = User.builder()
                         .id(userDto.getId())

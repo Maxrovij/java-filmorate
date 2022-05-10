@@ -62,9 +62,17 @@ public class FilmService {
             Optional<Film> maybeFilm = filmStorage.findFilmById(filmDto.getId());
             if (maybeFilm.isPresent()) {
                 LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
+                String name = filmDto.getName();
+                for (Film film : filmStorage.getAllFilms()) {
+                    if (film.getName().equals(name) && film.getReleaseDate().equals(filmDtoReleaseDay)) {
+                        if (!film.getId().equals(maybeFilm.get().getId()))
+                            throw new ValidationException("Такой фильм уже есть в базе.");
+                    }
+                }
+
                 Film film = Film.builder()
                         .id(filmDto.getId())
-                        .name(filmDto.getName())
+                        .name(name)
                         .description(filmDto.getDescription())
                         .releaseDate(filmDtoReleaseDay)
                         .duration(filmDto.getDuration())
@@ -82,12 +90,12 @@ public class FilmService {
     public Film getFilmById(Long id) {
         Optional<Film> maybeFilm = filmStorage.findFilmById(id);
         if (maybeFilm.isPresent()) return maybeFilm.get();
-        throw new ValidationException("Фильм не найден.");
+        throw new DataNotFoundException("Фильм не найден.");
     }
 
     public void likeFilm(Long filmId, Long userId) {
         if (filmId <= 0 || userId <= 0) {
-            throw new IllegalArgumentException("Невалидный ID");
+            throw new ValidationException("Невалидный ID");
         }
         Optional<Film> maybeFilm = filmStorage.findFilmById(filmId);
         User user = userService.getUserById(userId);
@@ -123,13 +131,13 @@ public class FilmService {
     private boolean validateFilm(FilmDto filmDto) {
         LocalDate filmDtoReleaseDay = LocalDate.parse(filmDto.getReleaseDate());
         if (filmDto.getName().isBlank())
-            throw new IllegalArgumentException("Название не может быть пустым.");
+            throw new ValidationException("Название не может быть пустым.");
         if (filmDto.getDescription().length() > 200 || filmDto.getDescription().length() == 0)
-            throw new IllegalArgumentException("Описание фильма слишком длинное или его вовсе нет.");
+            throw new ValidationException("Описание фильма слишком длинное или его вовсе нет.");
         if (filmDto.getDuration() <= 0)
-            throw new IllegalArgumentException("Продолжительность фильма маловата.");
+            throw new ValidationException("Продолжительность фильма маловата.");
         if (filmDtoReleaseDay.isBefore(CINEMA_BIRTH_DAY))
-            throw new IllegalArgumentException("Дата выхода фильма раньше даты изобретения кино");
+            throw new ValidationException("Дата выхода фильма раньше даты изобретения кино");
 
         return true;
     }

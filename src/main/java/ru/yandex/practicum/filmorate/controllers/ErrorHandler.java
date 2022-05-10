@@ -12,13 +12,13 @@ import ru.yandex.practicum.filmorate.model.ErrorResponseDto;
 public class ErrorHandler {
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseDto handleValidationException(final ValidationException e) {
         return new ErrorResponseDto(e.getMessage());
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponseDto handleDataNotFoundException(final DataNotFoundException e) {
         return new ErrorResponseDto(e.getMessage());
     }
