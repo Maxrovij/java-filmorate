@@ -88,7 +88,7 @@ public class UserService {
         throw new ValidationException("Пользователь не найден.");
     }
 
-    public void addFriend(Long userId, Long friendId) {
+    public void addFriendRequest(Long userId, Long friendId) {
         if (userId <= 0 || friendId <= 0) {
             throw new ValidationException("Невалидный ID");
         }
@@ -97,11 +97,11 @@ public class UserService {
         Optional<User> maybeFriend = userStorage.findUserById(friendId);
         if (maybeUser.isPresent() && maybeFriend.isPresent()) {
             User user = maybeUser.get();
-            user.addFriend(friendId);
+            user.addFriendRequest(friendId);
             userStorage.addUser(user);
 
             User friend = maybeFriend.get();
-            friend.addFriend(userId);
+            friend.addFriendRequest(userId);
             userStorage.addUser(friend);
         } else
             throw new DataNotFoundException("Пользователь не найден.");
@@ -132,8 +132,9 @@ public class UserService {
         Optional<User> maybeUser = userStorage.findUserById(userId);
         if (maybeUser.isPresent()) {
             User user = maybeUser.get();
-            for (Long id : user.getFriends()) {
-                userFriends.add(userStorage.findUserById(id).get());
+            for (Long id : user.getFriends().keySet()) {
+                if (user.getFriends().get(id).equals(true))
+                    userFriends.add(userStorage.findUserById(id).get());
             }
             return userFriends;
         } else
@@ -146,19 +147,9 @@ public class UserService {
         }
         Optional<User> maybeUser = userStorage.findUserById(userId);
         Optional<User> maybeOtherUser = userStorage.findUserById(otherId);
-        List<User> userFriends = new ArrayList<>();
         if (maybeUser.isPresent() && maybeOtherUser.isPresent()) {
-
-            User user = maybeUser.get();
-            for (Long id : user.getFriends()) {
-                userFriends.add(userStorage.findUserById(id).get());
-            }
-
-            List<User> otherUserFriends = new ArrayList<>();
-            User otherUser = maybeOtherUser.get();
-            for (Long id : otherUser.getFriends()) {
-                otherUserFriends.add(userStorage.findUserById(id).get());
-            }
+            List<User> userFriends = getUserFriends(userId);
+            List<User> otherUserFriends = getUserFriends(otherId);
             userFriends.retainAll(otherUserFriends);
             return userFriends;
         }
