@@ -1,7 +1,7 @@
 # java-filmorate
 Template repository for Filmorate project.
 
-![FilmorateDBD](/images/FilmorateDataBaseDiagram.png)
+![FilmorateDBD](/images/Filmorate DataBaseDiagram.png)
 
 __Данные о пользователях хранятся в таблице --Users--__. В ней записываются личные данные.
 
@@ -71,19 +71,17 @@ FROM Films AS f
 
 INNER JOIN Film-Genre AS fg ON f.id = fg.film_id
 
-INNER JOIN Genre AS g ON fg.genre_id = g.genre_id
+INNER JOIN Genres AS g ON f.genre_id = g.genre_id
 
-INNER JOIN Film-Rating AS fr ON f.id = fr.film_id
-
-INNER JOIN Rating AS r ON fr.rating_id = r.rating_id
+INNER JOIN Rating AS r ON f.rating_id = r.rating_id
 
 WHERE g.name = 'action'
 
-AND r.value = 'R';
+AND f.value = 'R';
 ___________________________________________________________________________________________
 
-Таблицы Film-Genre и Film-Rating хранят соответствие фильма-жанр, фильм-рейтинг. Первичный ключ этой таблицы - сочетание
-id фильма и id жанра или рейтинга, соответственно.
+Таблица Film-Genre хранит соответствие фильм-жанр. Первичный ключ этой таблицы - сочетание
+id фильма и id жанра.
 ___________________________________________________________________________________________
 
 _Таблица --**Film-Likes**-- содержит соответствие id фильма и id пользователей, поставивших лайк фильму._
