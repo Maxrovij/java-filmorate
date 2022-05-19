@@ -1,7 +1,8 @@
 # java-filmorate
 Template repository for Filmorate project.
 
-![FilmorateDBD](/images/Filmorate DataBaseDiagram.png)
+![FilmorateDBD](/images/FilmorateDBD.png)
+![](/images/Filmorate DataBase Documentation.pdf)
 
 __Данные о пользователях хранятся в таблице --Users--__. В ней записываются личные данные.
 
@@ -59,25 +60,7 @@ SELECT *
 FROM Films
 
 WHERE id = {id фильма}
-___________________________________________________________________________________________
 
-Так же присутствуют таблицы --**Genre**-- и --**Rating**--, хранящие названия жанров и маркировки рейтинга, соответственно.
-
-_Запрос на получение списка названий фильмов в жанре **action** и рейтингом **R**:_
-
-SELECT f.name
-
-FROM Films AS f
-
-INNER JOIN Film-Genre AS fg ON f.id = fg.film_id
-
-INNER JOIN Genres AS g ON f.genre_id = g.genre_id
-
-INNER JOIN Rating AS r ON f.rating_id = r.rating_id
-
-WHERE g.name = 'action'
-
-AND f.value = 'R';
 ___________________________________________________________________________________________
 
 Таблица Film-Genre хранит соответствие фильм-жанр. Первичный ключ этой таблицы - сочетание
