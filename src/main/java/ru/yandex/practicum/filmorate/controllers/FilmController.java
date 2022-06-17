@@ -43,7 +43,13 @@ public class FilmController {
         return filmService.getFilmById(id);
     }
 
-    @PutMapping("/{filmId}/like/{userId}")
+    @GetMapping("/popular")
+    public List<Film> getFilmsSortedByLikes(
+            @RequestParam(name = "count", defaultValue = "10", required = false) Integer count) {
+        return filmService.getPopular(count);
+    }
+
+   /* @PutMapping("/{filmId}/like/{userId}")
     public void like(@PathVariable Long filmId, @PathVariable Long userId) {
         filmService.likeFilm(filmId, userId);
     }
@@ -53,11 +59,10 @@ public class FilmController {
         filmService.unlikeFilm(filmId, userId);
     }
 
-    @GetMapping("/popular")
-    public List<Film> getFilmsSortedByLikes(
-            @RequestParam(name = "count", defaultValue = "10", required = false) Integer count) {
-        return filmService.getPopular(count);
-    }
+    */
+
+
+
 }
 
 
