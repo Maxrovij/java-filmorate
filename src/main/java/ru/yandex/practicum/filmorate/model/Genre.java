@@ -14,6 +14,11 @@ public class Genre {
         this.name = getGenre(id);
     }
 
+    public Genre(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     private String getGenre(int id) {
         return switch (id) {
             case 1 -> "Комедия";

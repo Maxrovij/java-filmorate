@@ -8,10 +8,7 @@ import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class FilmService {
@@ -97,43 +94,47 @@ public class FilmService {
         throw new DataNotFoundException("Фильм не найден.");
     }
 
-    public List<Film> getPopular(Integer count) {
+    public Collection<Film> getPopular(Integer count) {
         return filmStorage.getPopular(count);
     }
 
-    /*
     public void likeFilm(Long filmId, Long userId) {
-        if (filmId <= 0 || userId <= 0) {
-            throw new ValidationException("Невалидный ID");
-        }
         Optional<Film> maybeFilm = filmStorage.findFilmById(filmId);
-        User user = userService.getUserById(userId);
+        userService.getUserById(userId);
         if (maybeFilm.isPresent()) {
-            Film film = maybeFilm.get();
-            film.like(user.getId());
-            filmStorage.addFilm(film);
+            filmStorage.putLike(filmId, userId);
         } else
             throw new DataNotFoundException("Фильм не найден.");
-    } */
+    }
 
-    /*public void unlikeFilm(Long filmId, Long userId) {
-        if (filmId <= 0 || userId <= 0) {
-            throw new ValidationException("Невалидный ID");
-        }
+    public void unlikeFilm(Long filmId, Long userId) {
         Optional<Film> maybeFilm = filmStorage.findFilmById(filmId);
-        User user = userService.getUserById(userId);
+        userService.getUserById(userId);
         if (maybeFilm.isPresent()) {
-            Film film = maybeFilm.get();
-            film.unlike(user.getId());
-            filmStorage.addFilm(film);
-        } else
-            throw new DataNotFoundException("Фильм не найден.");
-    }*/
+            filmStorage.deleteLike(filmId, userId);
+        } else throw new DataNotFoundException("Фильм не найден.");
+    }
 
-    private List<Genre> createGenreList(FilmDto filmDto) {
+    public MpaRating getMpaRatingById(int id) {
+        return filmStorage.getMpaRatingById(id);
+    }
+
+    public Collection<MpaRating> getAllMpa() {
+        return filmStorage.getAllMpa();
+    }
+
+    public Collection<Genre> getAllGenres() {
+        return filmStorage.getAllGenres();
+    }
+
+    public Genre getGenreById(int id) {
+        return filmStorage.getGenreById(id);
+    }
+
+    private HashSet<Genre> createGenreList(FilmDto filmDto) {
         if (filmDto.getGenres() == null) return null;
-        if (filmDto.getGenres().isEmpty())return List.of();
-        List<Genre> genres = new ArrayList<>();
+        if (filmDto.getGenres().isEmpty())return new HashSet<>();
+        HashSet<Genre> genres = new HashSet<>();
         for (Genre g : filmDto.getGenres()) {
             genres.add(new Genre(g.getId()));
         }

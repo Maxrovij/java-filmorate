@@ -1,8 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.dao.impl;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
@@ -10,10 +12,7 @@ import ru.yandex.practicum.filmorate.storage.dao.FilmDao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Repository
 public class FilmDaoImpl implements FilmDao {
@@ -52,7 +51,7 @@ public class FilmDaoImpl implements FilmDao {
                 jdbcTemplate.update(genreSql, film.getId(), g.getId());
             }
         }
-        return film;
+        return findFilmById(film.getId()).get();
     }
 
     public Film editFilm(Film film) {
@@ -68,7 +67,18 @@ public class FilmDaoImpl implements FilmDao {
                 film.getRate(),
                 film.getMpa().getId()
         );
-        return film;
+
+        jdbcTemplate.update("delete from FILM_GENRE where FILM_ID=?", film.getId());
+        if (film.getGenres() != null) {
+            if (film.getGenres().isEmpty()) {
+                return film;
+            }
+            String genreSql = "insert into FILM_GENRE(film_id, genre_id) values (?,?)";
+            for (Genre g : film.getGenres()) {
+                jdbcTemplate.update(genreSql, film.getId(), g.getId());
+            }
+        }
+        return findFilmById(film.getId()).get();
     }
 
     public Optional<Film> findFilmById(Long id) {
@@ -82,26 +92,52 @@ public class FilmDaoImpl implements FilmDao {
             return Optional.empty();
         }
         try {
-            genres = jdbcTemplate.query(genreSql, (rs, rowNum) -> new Genre(rs.getInt("genre_id")), id);
+            genres = jdbcTemplate.query(
+                    genreSql,
+                    (rs, rowNum) -> new Genre(rs.getInt("genre_id")),
+                    id)
+            ;
             assert film != null;
             if (!genres.isEmpty()) {
-                film.setGenres(genres);
+                HashSet<Genre> g = new HashSet<>();
+                g.addAll(genres);
+                film.setGenres(g);
             } else {
                 film.setGenres(null);
             }
         }catch (DataAccessException e) {
             assert film != null;
-            film.setGenres(List.of());
+            film.setGenres(new HashSet<>());
         }
         return Optional.of(film);
     }
 
-    public List<Film> getPopular(Integer count) {
-        String sql = "select * from FILMS group by RATE limit ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), count)
-                .stream()
-                .sorted(Comparator.comparingLong(Film::getRate))
-                .collect(Collectors.toList());
+    public Collection<Film> getPopular(Integer count) {
+        String sql = "select * from FILMS order by RATE desc limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), count);
+    }
+
+    public void putLike(Long filmId, Long userId) {
+        try {
+            jdbcTemplate.queryForObject(
+                    "select USER_ID from FILM_LIKES where FILM_ID=? and USER_ID=?",
+                    Long.class,
+                    filmId,
+                    userId
+            );
+            throw new ValidationException("Этот пользователь уже поставил лайк этому фильму");
+        } catch (IncorrectResultSizeDataAccessException e) {
+            jdbcTemplate.update("insert into FILM_LIKES(FILM_ID, USER_ID) VALUES (?,?)", filmId, userId);
+            jdbcTemplate.update("update FILMS set RATE=? where ID=?",
+                    findFilmById(filmId).get().getRate()+1, filmId);
+        }
+    }
+
+    public void deleteLike(Long filmId, Long userId) {
+        String sql = "delete from FILM_LIKES where FILM_ID=? and USER_ID=?";
+        jdbcTemplate.update(sql,filmId,userId);
+        jdbcTemplate.update("update FILMS set RATE=? where ID=?",
+                findFilmById(filmId).get().getRate()-1, filmId);
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {

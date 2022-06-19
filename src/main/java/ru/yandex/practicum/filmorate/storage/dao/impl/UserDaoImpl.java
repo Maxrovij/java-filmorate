@@ -27,7 +27,9 @@ public class UserDaoImpl implements UserDao {
                 from USERS
                 where ID=?""";
         try {
-            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, (rs, rowNum) -> makeUser(rs) , id));
+            User user = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> makeUser(rs) , id);
+            if (user == null) return Optional.empty();
+            else return Optional.of(user);
         } catch (DataAccessException e) {
             return Optional.empty();
         }

@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 
 @Data
 public class MpaRating {
@@ -11,6 +10,11 @@ public class MpaRating {
     public MpaRating(int id) {
         this.id = id;
         this.name = getRating(id);
+    }
+
+    public MpaRating(int id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
     public MpaRating(){}

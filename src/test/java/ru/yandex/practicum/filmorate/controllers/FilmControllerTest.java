@@ -4,8 +4,8 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 class FilmControllerTest {
-    FilmService filmService = new FilmService(new InMemoryFilmStorage(), new UserService(new InMemoryUserStorage()));
-    private FilmController filmController = new FilmController(filmService);
+    /*FilmService filmService = new FilmService(new InMemoryFilmStorage(), new UserService(new InMemoryUserStorage()));
+    private FilmController filmController = new FilmController(filmService);*/
 
 /*    @Test
     void shouldAddFilm() throws ValidationException {

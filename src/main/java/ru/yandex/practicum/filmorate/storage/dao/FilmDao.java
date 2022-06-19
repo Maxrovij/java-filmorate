@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.dao;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,5 +15,9 @@ public interface FilmDao {
 
     Optional<Film> findFilmById(Long id);
 
-    List<Film> getPopular(Integer count);
+    Collection<Film> getPopular(Integer count);
+
+    void putLike(Long filmId, Long userId);
+
+    void deleteLike(Long filmId, Long userId);
 }
