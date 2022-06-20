@@ -35,7 +35,7 @@ jobs:
       - name: Checkout tests
         uses: actions/checkout@v3
         with:
-          repository: 'Maxrovij/java-filmorate'
+          repository: 'yandex-praktikum/java-filmorate'
           ref: ${{ github.event.pull_request.head.ref }}
           path: tests
 
@@ -43,7 +43,7 @@ jobs:
         run: nohup mvn spring-boot:run &
 
       - name: Waiting for application is up
-        run: /tmp/wait-for-it.sh -t 120 localhost:8080 -- echo "application is up &
+        run: /tmp/wait-for-it.sh -t 120 localhost:8080 -- echo "application is up"
 
       - name: Run POSTMAN tests
         run: |
