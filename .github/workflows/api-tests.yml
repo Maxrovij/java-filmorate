@@ -35,7 +35,7 @@ jobs:
       - name: Checkout tests
         uses: actions/checkout@v3
         with:
-          repository: 'yandex-praktikum/java-filmorate'
+          repository: 'Maxrovij/java-filmorate'
           ref: ${{ github.event.pull_request.head.ref }}
           path: tests
 
