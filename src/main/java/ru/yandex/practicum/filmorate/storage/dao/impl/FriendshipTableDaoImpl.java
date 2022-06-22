@@ -24,7 +24,7 @@ public class FriendshipTableDaoImpl implements FriendshipTableDao {
 
     @Override
     public void addFriend(Long userId, Long friendId) {
-        Optional<FriendshipTable> ft = getFriendshipTableOrNull(userId,friendId);
+        Optional<FriendshipTable> ft = getFriendshipTableOrNull(userId, friendId);
         if (ft.isEmpty()) {
             jdbcTemplate.update(
                     "insert into FRIENDSHIP_TABLE(first_user_id, second_user_id, status) VALUES (?,?,?)",
@@ -47,7 +47,7 @@ public class FriendshipTableDaoImpl implements FriendshipTableDao {
 
     @Override
     public void deleteFriend(Long userId, Long friendId) {
-        Optional<FriendshipTable> ft = getFriendshipTableOrNull(userId,friendId);
+        Optional<FriendshipTable> ft = getFriendshipTableOrNull(userId, friendId);
         if (ft.isEmpty()) {
             throw new DataNotFoundException("There is no such friendship!");
         }
@@ -57,14 +57,12 @@ public class FriendshipTableDaoImpl implements FriendshipTableDao {
                 friendshipTable.getFirstUserId(), friendshipTable.getSecondUserId());
     }
 
-    @Override //нужны скобки в запросе!
+    @Override
     public List<Long> getUserFriendsIds(Long userId) {
-        //language=H2
-        String sql = """
-                select * from FRIENDSHIP_TABLE where FIRST_USER_ID=? or SECOND_USER_ID=? and STATUS=true""";
+        String sql = "select * from FRIENDSHIP_TABLE where FIRST_USER_ID=? or SECOND_USER_ID=? and STATUS=true";
         List<FriendshipTable> friendshipTables = jdbcTemplate.query(
                 sql,
-                (rs, rowNum)-> FriendshipTable.builder()
+                (rs, rowNum) -> FriendshipTable.builder()
                         .firstUserId(rs.getLong("first_user_id"))
                         .secondUserId(rs.getLong("second_user_id"))
                         .status(rs.getBoolean("status")).build(),
@@ -84,19 +82,16 @@ public class FriendshipTableDaoImpl implements FriendshipTableDao {
     }
 
     private Optional<FriendshipTable> getFriendshipTableOrNull(Long userId, Long friendId) {
-        //language=H2
-        String sql = """
-                select * from FRIENDSHIP_TABLE
-                where FIRST_USER_ID in(?,?) and SECOND_USER_ID in (?,?)""";
+        String sql = "select * from FRIENDSHIP_TABLE where FIRST_USER_ID in(?,?) and SECOND_USER_ID in (?,?)";
         try {
             FriendshipTable ft = jdbcTemplate.queryForObject(sql,
-                    (rs,rowNum)-> FriendshipTable.builder()
+                    (rs, rowNum) -> FriendshipTable.builder()
                             .firstUserId(rs.getLong("FIRST_USER_ID"))
                             .secondUserId(rs.getLong("SECOND_USER_ID"))
                             .status(rs.getBoolean("STATUS")).build(),
-                    userId,friendId,userId,friendId);
+                    userId, friendId, userId, friendId);
             return Optional.ofNullable(ft);
-        }catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }

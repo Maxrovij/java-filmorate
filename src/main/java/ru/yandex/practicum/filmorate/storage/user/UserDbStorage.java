@@ -24,32 +24,34 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getAllUsers() {
-        return userDao.getAllUsers();
+        return userDao.getAll();
     }
 
     @Override
     public User addUser(User user) {
-        return userDao.addUser(user);
+        return userDao.add(user);
     }
 
     @Override
     public Optional<User> findUserById(Long id) {
-        return userDao.findUserById(id);
+        return userDao.findById(id);
     }
 
     @Override
     public User updateUser(User user) {
-        return userDao.updateUser(user);
+        return userDao.update(user);
     }
 
     @Override
     public void addFriend(Long userId, Long friendId) {
         friendshipTableDao.addFriend(userId, friendId);
     }
+
     @Override
     public void deleteFriend(Long userId, Long friendId) {
-        friendshipTableDao.deleteFriend(userId,friendId);
+        friendshipTableDao.deleteFriend(userId, friendId);
     }
+
     @Override
     public List<User> getUserFriends(Long userId) {
         List<Long> friendsIds = friendshipTableDao.getUserFriendsIds(userId);
@@ -58,7 +60,7 @@ public class UserDbStorage implements UserStorage {
         } else {
             List<User> userFriends = new ArrayList<>();
             for (Long id : friendsIds) {
-                userFriends.add(userDao.findUserById(id).get());
+                userFriends.add(userDao.findById(id).get());
             }
             return userFriends;
         }

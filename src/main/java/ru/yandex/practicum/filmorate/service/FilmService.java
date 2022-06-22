@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.comparator.Comparators;
 import ru.yandex.practicum.filmorate.exceptions.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.*;
@@ -28,59 +29,59 @@ public class FilmService {
         return filmStorage.getAllFilms();
     }
 
-    public Film addFilm(FilmDto filmDto) {
-        if(validateFilm(filmDto)) {
-            LocalDate filmDtoReleaseDate = filmDto.getReleaseDate();
-            String name = filmDto.getName();
-            for (Film film : filmStorage.getAllFilms()) {
-                if (film.getName().equals(filmDto.getName()) && film.getReleaseDate().equals(filmDtoReleaseDate)) {
+    public Film addFilm(Film film) {
+        if(validateFilm(film)) {
+            LocalDate filmReleaseDate = film.getReleaseDate();
+            String name = film.getName();
+            for (Film f : filmStorage.getAllFilms()) {
+                if (f.getName().equals(film.getName()) && f.getReleaseDate().equals(filmReleaseDate)) {
                     throw new ValidationException("Такой фильм уже есть в базе.");
                 }
-                if (film.getName().equals(filmDto.getName())){
-                    name = name + " (" + filmDtoReleaseDate.getYear() + ")";
+                if (f.getName().equals(film.getName())){
+                    name = name + " (" + filmReleaseDate.getYear() + ")";
                 }
             }
 
-            Film film = Film.builder()
+            Film filmToAdd = Film.builder()
                     .id(getNewId())
                     .name(name)
-                    .description(filmDto.getDescription())
-                    .releaseDate(filmDtoReleaseDate)
-                    .duration(filmDto.getDuration())
-                    .rate(filmDto.getRate())
-                    .mpa(new MpaRating(filmDto.getMpa().getId()))
-                    .genres(createGenreList(filmDto))
+                    .description(film.getDescription())
+                    .releaseDate(filmReleaseDate)
+                    .duration(film.getDuration())
+                    .rate(film.getRate())
+                    .mpa(filmStorage.getMpaRatingById(film.getMpa().getId()))
+                    .genres(createGenreList(film))
                     .build();
 
-            return filmStorage.addFilm(film);
+            return filmStorage.addFilm(filmToAdd);
         } else return null;
     }
 
-    public Film editFilm(FilmDto filmDto) {
-        if (filmDto.getId() != null && validateFilm(filmDto)) {
-            Optional<Film> maybeFilm = filmStorage.findFilmById(filmDto.getId());
+    public Film editFilm(Film film) {
+        if (film.getId() != null && validateFilm(film)) {
+            Optional<Film> maybeFilm = filmStorage.findFilmById(film.getId());
             if (maybeFilm.isPresent()) {
-                LocalDate filmDtoReleaseDay = filmDto.getReleaseDate();
-                String name = filmDto.getName();
-                for (Film film : filmStorage.getAllFilms()) {
-                    if (film.getName().equals(name) && film.getReleaseDate().equals(filmDtoReleaseDay)) {
-                        if (!film.getId().equals(maybeFilm.get().getId()))
+                LocalDate filmDtoReleaseDay = film.getReleaseDate();
+                String name = film.getName();
+                for (Film f : filmStorage.getAllFilms()) {
+                    if (f.getName().equals(name) && f.getReleaseDate().equals(filmDtoReleaseDay)) {
+                        if (!f.getId().equals(maybeFilm.get().getId()))
                             throw new ValidationException("Такой фильм уже есть в базе.");
                     }
                 }
 
-                Film film = Film.builder()
-                        .id(filmDto.getId())
+                Film filmToEdit = Film.builder()
+                        .id(film.getId())
                         .name(name)
-                        .description(filmDto.getDescription())
+                        .description(film.getDescription())
                         .releaseDate(filmDtoReleaseDay)
-                        .duration(filmDto.getDuration())
-                        .rate(filmDto.getRate())
-                        .mpa(new MpaRating(filmDto.getMpa().getId()))
-                        .genres(createGenreList(filmDto))
+                        .duration(film.getDuration())
+                        .rate(film.getRate())
+                        .mpa(filmStorage.getMpaRatingById(film.getMpa().getId()))
+                        .genres(createGenreList(film))
                         .build();
 
-                return filmStorage.editFilm(film);
+                return filmStorage.editFilm(filmToEdit);
             } else
                 throw new DataNotFoundException("Фильм не найден.");
         } else {
@@ -131,26 +132,26 @@ public class FilmService {
         return filmStorage.getGenreById(id);
     }
 
-    private HashSet<Genre> createGenreList(FilmDto filmDto) {
-        if (filmDto.getGenres() == null) return null;
-        if (filmDto.getGenres().isEmpty())return new HashSet<>();
+    private HashSet<Genre> createGenreList(Film film) {
+        if (film.getGenres() == null) return null;
+        if (film.getGenres().isEmpty())return new HashSet<>();
         HashSet<Genre> genres = new HashSet<>();
-        for (Genre g : filmDto.getGenres()) {
-            genres.add(new Genre(g.getId()));
+        for (Genre g : film.getGenres()) {
+            genres.add(filmStorage.getGenreById(g.getId()));
         }
         return genres;
     }
 
-    private boolean validateFilm(FilmDto filmDto) {
-        if (filmDto.getName().isBlank())
+    private boolean validateFilm(Film film) {
+        if (film.getName().isBlank())
             throw new ValidationException("Название не может быть пустым.");
-        if (filmDto.getDescription().length() > 200 || filmDto.getDescription().length() == 0)
+        if (film.getDescription().length() > 200 || film.getDescription().length() == 0)
             throw new ValidationException("Описание фильма слишком длинное или его вовсе нет.");
-        if (filmDto.getDuration() <= 0)
+        if (film.getDuration() <= 0)
             throw new ValidationException("Продолжительность фильма маловата.");
-        if (filmDto.getReleaseDate().isBefore(CINEMA_BIRTH_DAY))
+        if (film.getReleaseDate().isBefore(CINEMA_BIRTH_DAY))
             throw new ValidationException("Дата выхода фильма раньше даты изобретения кино.");
-        if (filmDto.getMpa() == null)
+        if (film.getMpa() == null)
             throw new ValidationException("Не указан рейтинг MPA.");
 
         return true;

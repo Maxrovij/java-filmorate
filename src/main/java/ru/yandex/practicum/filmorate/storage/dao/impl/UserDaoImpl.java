@@ -20,14 +20,11 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public Optional<User> findUserById(Long id) {
+    public Optional<User> findById(Long id) {
         //language=H2
-        String sql = """
-                select *
-                from USERS
-                where ID=?""";
+        String sql = "select * from USERS where ID=?";
         try {
-            User user = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> makeUser(rs) , id);
+            User user = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> makeUser(rs), id);
             if (user == null) return Optional.empty();
             else return Optional.of(user);
         } catch (DataAccessException e) {
@@ -36,11 +33,9 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User addUser(User user) {
-        String sql = """
-                insert into USERS(id, email, login, name, birthdate)
-                VALUES (?,?,?,?,?)""";
-        jdbcTemplate.update(sql, user.getId(), user.getEmail(), user.getLogin(),user.getName(), user.getBirthday());
+    public User add(User user) {
+        String sql = "insert into USERS(id, email, login, name, birthdate) VALUES (?,?,?,?,?)";
+        jdbcTemplate.update(sql, user.getId(), user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
 
         return jdbcTemplate.queryForObject(
                 "select * from users where id = " + user.getId(),
@@ -49,22 +44,17 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<User> getAllUsers() {
-        String sql = """
-                select *
-                from USERS""";
-        return jdbcTemplate.query(sql, (rs, rowNum)-> makeUser(rs));
+    public List<User> getAll() {
+        String sql = "select * from USERS";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs));
     }
 
     @Override
-    public User updateUser(User user) {
+    public User update(User user) {
         //language=H2
-        String sql = """
-                update USERS
-                set EMAIL=?, LOGIN=?, NAME=?, BIRTHDATE=?
-                where ID=?""";
+        String sql = "update USERS set EMAIL=?, LOGIN=?, NAME=?, BIRTHDATE=? where ID=?";
         jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
-        return user;
+        return findById(user.getId()).get();
     }
 
     private User makeUser(ResultSet rs) throws SQLException {

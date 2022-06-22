@@ -5,7 +5,6 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.*;
 
-// класс представляющий объект фильма
 @Data
 @Builder
 public class Film {

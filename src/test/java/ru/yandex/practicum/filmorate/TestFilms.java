@@ -13,7 +13,7 @@ public class TestFilms {
             .duration(1000L)
             .rate(2L)
             .releaseDate(LocalDate.of(2000, 1, 2))
-            .mpa(new MpaRating(1))
+            .mpa(new MpaRating(1, "G"))
             .build();
 
     public static Film film1update = Film.builder()
@@ -23,7 +23,7 @@ public class TestFilms {
             .duration(2000L)
             .rate(5L)
             .releaseDate(LocalDate.of(2001, 2, 3))
-            .mpa(new MpaRating(4))
+            .mpa(new MpaRating(4, "R"))
             .build();
 
     public static Film film2 = Film.builder()
@@ -33,6 +33,6 @@ public class TestFilms {
             .duration(3000L)
             .rate(2L)
             .releaseDate(LocalDate.of(1999, 2, 3))
-            .mpa(new MpaRating(3))
+            .mpa(new MpaRating(3, "PG-13"))
             .build();
 }

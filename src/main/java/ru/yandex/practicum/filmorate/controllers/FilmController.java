@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -11,7 +10,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import java.util.Collection;
 import java.util.List;
 
-// класс обработки запросов к фильмам
 @RestController
 public class FilmController {
 
@@ -30,14 +28,14 @@ public class FilmController {
 
     // обработка POST запроса для добавления фильма
     @PostMapping("/films")
-    public Film addFilm(@RequestBody FilmDto filmDto) {
-        return filmService.addFilm(filmDto);
+    public Film addFilm(@RequestBody Film film) {
+        return filmService.addFilm(film);
     }
 
     // обработка PUT запроса для редактирования фильма
     @PutMapping("/films")
-    public Film editFilm(@RequestBody FilmDto filmDto) {
-        return filmService.editFilm(filmDto);
+    public Film editFilm(@RequestBody Film film) {
+        return filmService.editFilm(film);
     }
 
     @GetMapping("/films/{id}")

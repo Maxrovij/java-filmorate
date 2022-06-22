@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserDao {
-    Optional<User> findUserById(Long id);
-    User addUser(User user);
+    Optional<User> findById(Long id);
+    User add(User user);
 
-    List<User> getAllUsers();
+    List<User> getAll();
 
-    User updateUser(User user);
+    User update(User user);
 }
