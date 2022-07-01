@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.model.UserDto;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import javax.validation.Valid;
 import java.util.*;
 
 // класс для обработки запросов к пользователям
@@ -28,31 +27,35 @@ public class UserController {
 
     // метод обработки POST запросов для добавления нового пользователя
     @PostMapping
-    public User addUser(@Valid @RequestBody UserDto userDto) {
+    public User addUser(@RequestBody UserDto userDto) {
         return userService.addUser(userDto);
     }
 
     // метод обработки PUT запросов для редактирования пользователя
     @PutMapping
-    public void editUser(@Valid @RequestBody UserDto userDto) {
-        userService.editUser(userDto);
+    public User editUser(@RequestBody UserDto userDto) {
+        return userService.editUser(userDto);
     }
 
+    // метод получения пользователя по id
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 
+    // метод добавления нового друга к пользователю
     @PutMapping("{userId}/friends/{friendId}")
     public void addNewFriend(@PathVariable Long userId, @PathVariable Long friendId) {
-        userService.addFriendRequest(userId, friendId);
+        userService.addFriend(userId, friendId);
     }
 
+    //метод удаления дружбы
     @DeleteMapping("{userId}/friends/{friendId}")
     public void deleteFriend(@PathVariable Long userId, @PathVariable Long friendId) {
         userService.deleteFriend(userId, friendId);
     }
 
+    // метод нахождения друзей пользователя
     @GetMapping("{userId}/friends")
     public List<User> findFriends(@PathVariable Long userId) {
         return userService.getUserFriends(userId);
